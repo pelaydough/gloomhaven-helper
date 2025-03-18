@@ -293,18 +293,19 @@ function App() {
                       </DrawerHeader>
                       <div className="p-4 flex flex-col gap-2">
                         {conditions.map((condition) => (
-                          <button
-                            key={condition.name}
-                            onClick={() => {
-                              handleConditionAdd(
-                                character.name,
-                                condition.name
-                              );
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg"
-                          >
-                            {condition.name}
-                          </button>
+                          <DrawerClose key={condition.name} asChild>
+                            <button
+                              onClick={() => {
+                                handleConditionAdd(
+                                  character.name,
+                                  condition.name
+                                );
+                              }}
+                              className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg"
+                            >
+                              {condition.name}
+                            </button>
+                          </DrawerClose>
                         ))}
                       </div>
                       <DrawerFooter>
