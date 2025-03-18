@@ -9,6 +9,18 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 
 const conditions = [
   {
@@ -60,6 +72,8 @@ type Character = {
   conditions: string[];
   color: string;
   maxHealth: number;
+  currentXP: number;
+  overallXP: number;
 };
 
 function App() {
@@ -77,6 +91,8 @@ function App() {
         conditions: [],
         color: "blue",
         maxHealth: 8,
+        currentXP: 0,
+        overallXP: 0,
       },
       {
         name: "Red Guard",
@@ -85,6 +101,8 @@ function App() {
         conditions: [],
         color: "red",
         maxHealth: 10,
+        currentXP: 0,
+        overallXP: 0,
       },
       {
         name: "Void Warden",
@@ -93,6 +111,8 @@ function App() {
         conditions: [],
         color: "slate",
         maxHealth: 6,
+        currentXP: 0,
+        overallXP: 0,
       },
       {
         name: "Demolitionist",
@@ -101,6 +121,8 @@ function App() {
         conditions: [],
         color: "orange",
         maxHealth: 8,
+        currentXP: 0,
+        overallXP: 0,
       },
     ];
   });
@@ -134,23 +156,59 @@ function App() {
     );
   };
 
-  const handleMaxHealthChange = (characterName: string, delta: number) => {
+  const calculateMaxHealth = (characterName: string, level: number): number => {
+    switch (characterName) {
+      case "Hatchet":
+      case "Demolitionist":
+        const hatchetHealth = [8, 9, 11, 12, 14, 15, 17, 18, 20];
+        return hatchetHealth[level - 1] || hatchetHealth[0];
+      case "Red Guard":
+        return 8 + level * 2;
+      case "Void Warden":
+        return 5 + level;
+      default:
+        return 8;
+    }
+  };
+
+  const calculateLevelFromXP = (xp: number): number => {
+    const xpBreakpoints = [0, 45, 95, 150, 210, 275, 345, 420, 500];
+    for (let i = xpBreakpoints.length - 1; i >= 0; i--) {
+      if (xp >= xpBreakpoints[i]) {
+        return i + 1;
+      }
+    }
+    return 1;
+  };
+
+  const handleXPChange = (characterName: string, delta: number) => {
     setCharacters((prevCharacters) =>
       prevCharacters.map((char) =>
         char.name === characterName
-          ? { ...char, maxHealth: char.maxHealth + delta }
+          ? { ...char, currentXP: Math.max(0, char.currentXP + delta) }
           : char
       )
     );
   };
 
-  const handleLevelChange = (characterName: string, delta: number) => {
+  const handleBankXP = (characterName: string) => {
     setCharacters((prevCharacters) =>
-      prevCharacters.map((char) =>
-        char.name === characterName
-          ? { ...char, level: char.level + delta }
-          : char
-      )
+      prevCharacters.map((char) => {
+        if (char.name === characterName) {
+          const updatedChar = { ...char };
+          updatedChar.overallXP = char.overallXP + char.currentXP;
+          updatedChar.currentXP = 0;
+          const newLevel = calculateLevelFromXP(updatedChar.overallXP);
+          updatedChar.level = newLevel;
+          updatedChar.maxHealth = calculateMaxHealth(char.name, newLevel);
+          updatedChar.health = Math.min(
+            updatedChar.health,
+            updatedChar.maxHealth
+          );
+          return updatedChar;
+        }
+        return char;
+      })
     );
   };
 
@@ -177,6 +235,39 @@ function App() {
     );
   };
 
+  const handleBankXPWithConfirmation = (characterName: string) => {
+    const character = characters.find((char) => char.name === characterName);
+    if (!character || character.currentXP === 0) return;
+
+    return (
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <button
+            onClick={(e) => e.stopPropagation()}
+            className="text-white text-2xl font-medium text-center hover:text-white/80 transition-colors"
+          >
+            {character.currentXP}
+          </button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Set Experience Points</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you ready to add {character.currentXP} XP to {character.name}
+              's overall XP? This will reset current XP to 0.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => handleBankXP(character.name)}>
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    );
+  };
+
   return (
     <div className="bg-gray-100 min-h-screen w-screen p-4 md:p-8">
       <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -192,73 +283,99 @@ function App() {
                 <h1 className="text-white text-2xl font-medium">
                   {character.name}
                 </h1>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-white text-sm font-thin">
-                    Max Health ({character.maxHealth})
-                  </span>
-                  <button
-                    onClick={() => handleMaxHealthChange(character.name, 1)}
-                    className="text-white bg-white/20 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-                  >
-                    +
-                  </button>
-                  <button
-                    onClick={() => handleMaxHealthChange(character.name, -1)}
-                    className="text-white bg-white/20 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-                  >
-                    -
-                  </button>
-                </div>
+                <span className="text-white text-xs font-thin">
+                  Level {character.level}
+                </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-6 mb-6">
-                <div className="bg-white/10 rounded-lg p-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <p className="text-white text-sm">Health</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-white text-2xl font-medium">
-                      {character.health}
+              <div className="grid grid-cols-6 gap-3 mb-6">
+                <div className="bg-white/10 rounded-lg col-span-2 flex flex-col items-center justify-center">
+                  <div className="flex flex-col items-center justify-center my-2">
+                    <p className="text-white text-sm text-center">Health</p>
+                    <span className="text-white/70 text-xs font-thin">
+                      Max ({character.maxHealth})
                     </span>
-                    <div className="flex gap-1">
-                      <button
-                        onClick={() => handleHealthChange(character.name, 1)}
-                        className="text-white hover:bg-white/20 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-                      >
-                        +
-                      </button>
-                      <button
-                        onClick={() => handleHealthChange(character.name, -1)}
-                        className="text-white hover:bg-white/20 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-                      >
-                        -
-                      </button>
-                    </div>
+                  </div>
+
+                  <span className="text-white text-2xl font-medium text-center">
+                    {character.health}
+                  </span>
+                  <div className="flex w-full">
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleHealthChange(character.name, -1)}
+                      className="text-white hover:bg-white/20 w-1/2 rounded-bl-lg rounded-br-none rounded-t-none flex items-center justify-center transition-colors"
+                    >
+                      -
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleHealthChange(character.name, 1)}
+                      className="text-white hover:bg-white/20 w-1/2 bg rounded-br-lg rounded-bl-none rounded-t-none flex items-center justify-center transition-colors"
+                    >
+                      +
+                    </Button>
+                  </div>
+                </div>
+                {/* <div className="bg-white/10 rounded-lg col-span-2 flex flex-col items-center justify-between">
+                  <p className="text-white text-sm my-2 text-center">Level</p>
+                  <span className="text-white text-2xl font-medium text-center">
+                    {character.level}
+                  </span>
+                  <div className="flex w-full">
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleLevelChange(character.name, -1)}
+                      className="text-white hover:bg-white/20 w-1/2 rounded-bl-lg rounded-br-none rounded-t-none flex items-center justify-center transition-colors"
+                    >
+                      -
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleLevelChange(character.name, 1)}
+                      className="text-white hover:bg-white/20 w-1/2 bg rounded-br-lg rounded-bl-none rounded-t-none flex items-center justify-center transition-colors"
+                    >
+                      +
+                    </Button>
+                  </div>
+                </div> */}
+
+                <div className="bg-white/10 rounded-lg col-span-2 flex flex-col items-center justify-between">
+                  <div className="flex flex-col items-center justify-center my-2">
+                    <p className="text-white text-sm text-center">Current XP</p>
+                    <span className="text-white/70 text-xs font-thin">
+                      Click XP to set
+                    </span>
+                  </div>
+                  {handleBankXPWithConfirmation(character.name)}
+                  <div className="flex w-full">
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleXPChange(character.name, -1)}
+                      className="text-white hover:bg-white/20 w-1/2 rounded-bl-lg rounded-br-none rounded-t-none flex items-center justify-center transition-colors"
+                    >
+                      -
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleXPChange(character.name, 1)}
+                      className="text-white hover:bg-white/20 w-1/2 bg rounded-br-lg rounded-bl-none rounded-t-none flex items-center justify-center transition-colors"
+                    >
+                      +
+                    </Button>
                   </div>
                 </div>
 
-                <div className="bg-white/10 rounded-lg p-4">
-                  <p className="text-white text-sm mb-2">Level</p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-white text-2xl font-medium">
-                      {character.level}
+                <div className="bg-white/10 rounded-lg col-span-2 flex flex-col items-center justify-start">
+                  <div className="flex flex-col items-center justify-center my-2">
+                    <p className="text-white text-sm text-center">Overall XP</p>
+                    <span className="text-white/70 text-xs font-thin">
+                      Determines level
                     </span>
-                    <div className="flex gap-1">
-                      <button
-                        onClick={() => handleLevelChange(character.name, 1)}
-                        className="text-white hover:bg-white/20 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-                      >
-                        +
-                      </button>
-                      <button
-                        onClick={() => handleLevelChange(character.name, -1)}
-                        className="text-white hover:bg-white/20 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-                      >
-                        -
-                      </button>
-                    </div>
                   </div>
+                  <span className="text-white text-2xl font-medium text-center">
+                    {character.overallXP}
+                  </span>
                 </div>
               </div>
 
