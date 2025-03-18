@@ -237,15 +237,12 @@ function App() {
 
   const handleBankXPWithConfirmation = (characterName: string) => {
     const character = characters.find((char) => char.name === characterName);
-    if (!character || character.currentXP === 0) return;
+    if (!character || character.currentXP === 0) return null;
 
     return (
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <button
-            onClick={(e) => e.stopPropagation()}
-            className="text-white text-2xl font-medium text-center hover:text-white/80 transition-colors"
-          >
+          <button className="text-white text-2xl font-medium text-center hover:text-white/80 transition-colors">
             {character.currentXP}
           </button>
         </AlertDialogTrigger>
@@ -317,28 +314,6 @@ function App() {
                     </Button>
                   </div>
                 </div>
-                {/* <div className="bg-white/10 rounded-lg col-span-2 flex flex-col items-center justify-between">
-                  <p className="text-white text-sm my-2 text-center">Level</p>
-                  <span className="text-white text-2xl font-medium text-center">
-                    {character.level}
-                  </span>
-                  <div className="flex w-full">
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleLevelChange(character.name, -1)}
-                      className="text-white hover:bg-white/20 w-1/2 rounded-bl-lg rounded-br-none rounded-t-none flex items-center justify-center transition-colors"
-                    >
-                      -
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleLevelChange(character.name, 1)}
-                      className="text-white hover:bg-white/20 w-1/2 bg rounded-br-lg rounded-bl-none rounded-t-none flex items-center justify-center transition-colors"
-                    >
-                      +
-                    </Button>
-                  </div>
-                </div> */}
 
                 <div className="bg-white/10 rounded-lg col-span-2 flex flex-col items-center justify-between">
                   <div className="flex flex-col items-center justify-center my-2">
