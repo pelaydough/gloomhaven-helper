@@ -227,6 +227,16 @@ function App() {
     );
   };
 
+  const handleGoldChange = (characterName: string, delta: number) => {
+    setCharacters((prevCharacters) =>
+      prevCharacters.map((char) =>
+        char.name === characterName
+          ? { ...char, currentGold: Math.max(0, char.currentGold + delta) }
+          : char
+      )
+    );
+  };
+
   const handleNextTurn = () => {
     Object.entries(elementStates).forEach(([element, value]) => {
       if ((value as number) > 0) {
@@ -251,7 +261,7 @@ function App() {
     );
   };
 
-  const handleBankXP = (characterName: string) => {
+  const handleCollectXP = (characterName: string) => {
     setCharacters((prevCharacters) =>
       prevCharacters.map((char) => {
         if (char.name === characterName) {
@@ -272,30 +282,21 @@ function App() {
     );
   };
 
-  const handleConditionAdd = (characterName: string, condition: string) => {
-    setCharacters((prevCharacters) =>
-      prevCharacters.map((char) =>
-        char.name === characterName
-          ? { ...char, conditions: [...char.conditions, condition] }
-          : char
-      )
-    );
-  };
-
-  const handleConditionRemove = (characterName: string, condition: string) => {
+  const handleCollectGold = (characterName: string) => {
     setCharacters((prevCharacters) =>
       prevCharacters.map((char) =>
         char.name === characterName
           ? {
               ...char,
-              conditions: char.conditions.filter((c) => c !== condition),
+              totalGold: char.totalGold + char.currentGold,
+              currentGold: 0,
             }
           : char
       )
     );
   };
 
-  const handleBankXPWithConfirmation = (characterName: string) => {
+  const handleCollectXPWithConfirmation = (characterName: string) => {
     const character = characters.find((char) => char.name === characterName);
     if (!character || character.currentXP === 0) {
       return (
@@ -314,7 +315,7 @@ function App() {
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Bank Experience Points</AlertDialogTitle>
+            <AlertDialogTitle>Collect Experience Points</AlertDialogTitle>
             <AlertDialogDescription>
               Are you ready to add {character.currentXP} XP to {character.name}
               's overall XP? This will reset current XP to 0.
@@ -322,7 +323,46 @@ function App() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => handleBankXP(character.name)}>
+            <AlertDialogAction onClick={() => handleCollectXP(character.name)}>
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    );
+  };
+
+  const handleCollectGoldWithConfirmation = (characterName: string) => {
+    const character = characters.find((char) => char.name === characterName);
+    if (!character || character.currentGold === 0) {
+      return (
+        <span className="text-white text-2xl font-medium text-center">
+          {character?.currentGold || 0}
+        </span>
+      );
+    }
+
+    return (
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <button className="text-white text-2xl font-medium text-center hover:text-white/80 transition-colors">
+            {character.currentGold}
+          </button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Collect Gold</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you ready to add {character.currentGold} gold to{" "}
+              {character.name}
+              's total gold? This will reset current gold to 0.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => handleCollectGold(character.name)}
+            >
               Confirm
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -390,6 +430,29 @@ function App() {
     });
   };
 
+  const handleConditionAdd = (characterName: string, condition: string) => {
+    setCharacters((prevCharacters) =>
+      prevCharacters.map((char) =>
+        char.name === characterName && !char.conditions.includes(condition)
+          ? { ...char, conditions: [...char.conditions, condition] }
+          : char
+      )
+    );
+  };
+
+  const handleConditionRemove = (characterName: string, condition: string) => {
+    setCharacters((prevCharacters) =>
+      prevCharacters.map((char) =>
+        char.name === characterName
+          ? {
+              ...char,
+              conditions: char.conditions.filter((c) => c !== condition),
+            }
+          : char
+      )
+    );
+  };
+
   return (
     <div className="bg-gray-100 min-h-screen w-screen p-4 md:p-8">
       <div className="max-w-5xl mx-auto mb-4 flex flex-row gap-2 justify-between items-center">
@@ -408,7 +471,7 @@ function App() {
               <div className="flex flex-col gap-2">
                 <button
                   onClick={() => toggleMenu("Commands")}
-                  className="flex w-full items-center justify-between p-2 hover:bg-gray-100 rounded-md"
+                  className="flex w-full items-center justify-between p-2 hover:bg-gray-100 rounded-md cursor-pointer"
                 >
                   <span>Commands</span>
                   <ChevronDown
@@ -430,41 +493,10 @@ function App() {
                   <div className="overflow-hidden pl-3 flex flex-col gap-2">
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button className="cursor-pointer hover:text-gray-700 transition-colors">
-                          Bank All XP
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            Bank All Experience Points
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to bank current XP for all
-                            characters? This will add their current XP to
-                            overall XP and reset current XP to 0.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <SheetClose asChild>
-                            <AlertDialogAction
-                              onClick={() =>
-                                characters.forEach((char) =>
-                                  handleBankXP(char.name)
-                                )
-                              }
-                            >
-                              Confirm
-                            </AlertDialogAction>
-                          </SheetClose>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button className="cursor-pointer hover:text-gray-700 transition-colors">
+                        <Button
+                          variant="outline"
+                          className="cursor-pointer hover:text-gray-700 transition-colors"
+                        >
                           Next Turn
                         </Button>
                       </AlertDialogTrigger>
@@ -481,6 +513,117 @@ function App() {
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
                           <SheetClose asChild>
                             <AlertDialogAction onClick={() => handleNextTurn()}>
+                              Confirm
+                            </AlertDialogAction>
+                          </SheetClose>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="cursor-pointer hover:text-gray-700 transition-colors"
+                        >
+                          Collect All
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Collect All Resources
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to collect all current XP and
+                            gold for all characters? This will add their current
+                            XP to overall XP, current gold to total gold, and
+                            reset both to 0.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <SheetClose asChild>
+                            <AlertDialogAction
+                              onClick={() => {
+                                characters.forEach((char) => {
+                                  handleCollectXP(char.name);
+                                  handleCollectGold(char.name);
+                                });
+                              }}
+                            >
+                              Confirm
+                            </AlertDialogAction>
+                          </SheetClose>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="cursor-pointer hover:text-gray-700 transition-colors"
+                        >
+                          Collect All XP
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Collect All Experience Points
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to collect current XP for all
+                            characters? This will add their current XP to
+                            overall XP and reset current XP to 0.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <SheetClose asChild>
+                            <AlertDialogAction
+                              onClick={() =>
+                                characters.forEach((char) =>
+                                  handleCollectXP(char.name)
+                                )
+                              }
+                            >
+                              Confirm
+                            </AlertDialogAction>
+                          </SheetClose>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="cursor-pointer hover:text-gray-700 transition-colors"
+                        >
+                          Collect All Gold
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Collect All Gold</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to collect current gold for
+                            all characters? This will add their current gold to
+                            total gold and reset current gold to 0.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <SheetClose asChild>
+                            <AlertDialogAction
+                              onClick={() =>
+                                characters.forEach((char) =>
+                                  handleCollectGold(char.name)
+                                )
+                              }
+                            >
                               Confirm
                             </AlertDialogAction>
                           </SheetClose>
@@ -529,7 +672,7 @@ function App() {
                     XP: <b>{character.overallXP}</b>
                   </span>
                   <span className="text-white text-xs font-thin">
-                    Gold: <b>{character.currentGold}</b>
+                    Gold: <b>{character.totalGold}</b>
                   </span>
                 </div>
               </div>
@@ -571,7 +714,7 @@ function App() {
                       Click XP to set
                     </span>
                   </div>
-                  {handleBankXPWithConfirmation(character.name)}
+                  {handleCollectXPWithConfirmation(character.name)}
                   <div className="flex w-full md:mt-2">
                     <Button
                       variant="ghost"
@@ -592,14 +735,30 @@ function App() {
 
                 <div className="bg-white/10 rounded-lg col-span-2 flex flex-col items-center justify-start">
                   <div className="flex flex-col items-center justify-center my-2">
-                    <p className="text-white text-sm text-center">Overall XP</p>
+                    <p className="text-white text-sm text-center">
+                      Current Gold
+                    </p>
                     <span className="text-white/70 text-xs font-thin">
-                      Determines level
+                      Click gold to set
                     </span>
                   </div>
-                  <span className="text-white text-2xl font-medium text-center">
-                    {character.overallXP}
-                  </span>
+                  {handleCollectGoldWithConfirmation(character.name)}
+                  <div className="flex w-full md:mt-2">
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleGoldChange(character.name, -1)}
+                      className="text-white hover:bg-white/20 w-1/2 rounded-bl-lg rounded-br-none rounded-t-none flex items-center justify-center transition-colors cursor-pointer"
+                    >
+                      -
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleGoldChange(character.name, 1)}
+                      className="text-white hover:bg-white/20 w-1/2 bg rounded-br-lg rounded-bl-none rounded-t-none flex items-center justify-center transition-colors cursor-pointer"
+                    >
+                      +
+                    </Button>
+                  </div>
                 </div>
               </div>
 
