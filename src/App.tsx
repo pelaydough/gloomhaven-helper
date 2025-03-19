@@ -92,6 +92,8 @@ type Character = {
   maxHealth: number;
   currentXP: number;
   overallXP: number;
+  currentGold: number;
+  totalGold: number;
 };
 
 function App() {
@@ -111,6 +113,8 @@ function App() {
         maxHealth: 8,
         currentXP: 0,
         overallXP: 0,
+        currentGold: 0,
+        totalGold: 0,
       },
       {
         name: "Red Guard",
@@ -121,6 +125,8 @@ function App() {
         maxHealth: 10,
         currentXP: 0,
         overallXP: 0,
+        currentGold: 0,
+        totalGold: 0,
       },
       {
         name: "Void Warden",
@@ -131,6 +137,8 @@ function App() {
         maxHealth: 6,
         currentXP: 0,
         overallXP: 0,
+        currentGold: 0,
+        totalGold: 0,
       },
       {
         name: "Demolitionist",
@@ -141,6 +149,8 @@ function App() {
         maxHealth: 8,
         currentXP: 0,
         overallXP: 0,
+        currentGold: 0,
+        totalGold: 0,
       },
     ];
   });
@@ -280,7 +290,13 @@ function App() {
 
   const handleBankXPWithConfirmation = (characterName: string) => {
     const character = characters.find((char) => char.name === characterName);
-    if (!character || character.currentXP === 0) return null;
+    if (!character || character.currentXP === 0) {
+      return (
+        <span className="text-white text-2xl font-medium text-center">
+          {character?.currentXP || 0}
+        </span>
+      );
+    }
 
     return (
       <AlertDialog>
@@ -291,7 +307,7 @@ function App() {
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Set Experience Points</AlertDialogTitle>
+            <AlertDialogTitle>Bank Experience Points</AlertDialogTitle>
             <AlertDialogDescription>
               Are you ready to add {character.currentXP} XP to {character.name}
               's overall XP? This will reset current XP to 0.
@@ -299,11 +315,9 @@ function App() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <SheetClose asChild>
-              <AlertDialogAction onClick={() => handleBankXP(character.name)}>
-                Confirm
-              </AlertDialogAction>
-            </SheetClose>
+            <AlertDialogAction onClick={() => handleBankXP(character.name)}>
+              Confirm
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -452,9 +466,17 @@ function App() {
                 <h1 className="text-white text-2xl font-medium">
                   {character.name}
                 </h1>
-                <span className="text-white text-xs font-thin">
-                  Level {character.level}
-                </span>
+                <div className="flex flex-row gap-2">
+                  <span className="text-white text-xs font-thin">
+                    Level: <b>{character.level}</b>
+                  </span>
+                  <span className="text-white text-xs font-thin">
+                    XP: <b>{character.overallXP}</b>
+                  </span>
+                  <span className="text-white text-xs font-thin">
+                    Gold: <b>{character.currentGold}</b>
+                  </span>
+                </div>
               </div>
 
               <div className="grid grid-cols-6 gap-3 mb-6">
