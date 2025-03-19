@@ -336,7 +336,7 @@ function App() {
       <div className="max-w-5xl mx-auto mb-4 flex flex-row gap-2 justify-between items-center">
         <Sheet>
           <SheetTrigger asChild>
-            <Menu />
+            <Menu className="cursor-pointer" />
           </SheetTrigger>
           <SheetContent side="left">
             <SheetHeader>
