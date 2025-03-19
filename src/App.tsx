@@ -20,6 +20,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
 const conditions = [
@@ -256,9 +266,11 @@ function App() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => handleBankXP(character.name)}>
-              Confirm
-            </AlertDialogAction>
+            <SheetClose asChild>
+              <AlertDialogAction onClick={() => handleBankXP(character.name)}>
+                Confirm
+              </AlertDialogAction>
+            </SheetClose>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -267,6 +279,52 @@ function App() {
 
   return (
     <div className="bg-gray-100 min-h-screen w-screen p-4 md:p-8">
+      <div className="max-w-5xl mx-auto mb-4">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline">Mass Commands</Button>
+          </SheetTrigger>
+          <SheetContent side="left">
+            <SheetHeader>
+              <SheetTitle>Mass Commands</SheetTitle>
+              <SheetDescription>
+                Make commands to all characters at once.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="p-4">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button className="w-full">Bank All XP</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Bank All Experience Points
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to bank current XP for all
+                      characters? This will add their current XP to overall XP
+                      and reset current XP to 0.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <SheetClose asChild>
+                      <AlertDialogAction
+                        onClick={() =>
+                          characters.forEach((char) => handleBankXP(char.name))
+                        }
+                      >
+                        Confirm
+                      </AlertDialogAction>
+                    </SheetClose>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
       <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
         {characters.map((character) => (
           <div
