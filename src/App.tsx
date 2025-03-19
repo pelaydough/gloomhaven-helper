@@ -72,7 +72,7 @@ const conditions = [
       "https://static.wikia.nocookie.net/gloohaven/images/a/a0/ICON-Condition-Strengthen.png/revision/latest/scale-to-width-down/30?cb=20221007205135",
   },
   {
-    name: "Stunned",
+    name: "Stun",
     imageUrl:
       "https://static.wikia.nocookie.net/gloohaven/images/b/b2/ICON-Condition-Stun.png/revision/latest/scale-to-width-down/30?cb=20221007205102",
   },
@@ -209,6 +209,31 @@ function App() {
     );
   };
 
+  const handleNextTurn = () => {
+    // Simulate clicks on active elements
+    Object.entries(elementStates).forEach(([element, value]) => {
+      if ((value as number) > 0) {
+        handleElementClick(element as keyof typeof elementStates);
+      }
+    });
+
+    const conditionsToRemove = [
+      "Disarm",
+      "Immobilize",
+      "Invisible",
+      "Strengthen",
+      "Stun",
+    ];
+    setCharacters((prevCharacters) =>
+      prevCharacters.map((char) => ({
+        ...char,
+        conditions: char.conditions.filter(
+          (condition) => !conditionsToRemove.includes(condition)
+        ),
+      }))
+    );
+  };
+
   const handleBankXP = (characterName: string) => {
     setCharacters((prevCharacters) =>
       prevCharacters.map((char) => {
@@ -285,7 +310,6 @@ function App() {
     );
   };
 
-  // Update the elementStates initialization to use localStorage
   const [elementStates, setElementStates] = useState(() => {
     const saved = localStorage.getItem("elementStates");
     if (saved) {
@@ -300,7 +324,6 @@ function App() {
     };
   });
 
-  // Add useEffect to save elementStates changes
   useEffect(() => {
     localStorage.setItem("elementStates", JSON.stringify(elementStates));
   }, [elementStates]);
@@ -308,7 +331,7 @@ function App() {
   const handleElementClick = (element: keyof typeof elementStates) => {
     setElementStates((prev: typeof elementStates) => ({
       ...prev,
-      [element]: (prev[element] + 1) % 3, // Cycle through 0, 1, 2
+      [element]: (prev[element] + 1) % 3,
     }));
   };
 
@@ -345,7 +368,7 @@ function App() {
                 Make commands to all characters at once.
               </SheetDescription>
             </SheetHeader>
-            <div className="p-4">
+            <div className="p-4 flex flex-col gap-2">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button className="w-full">Bank All XP</Button>
@@ -369,6 +392,29 @@ function App() {
                           characters.forEach((char) => handleBankXP(char.name))
                         }
                       >
+                        Confirm
+                      </AlertDialogAction>
+                    </SheetClose>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button className="w-full">Next Turn</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Next Turn</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you ready to end the current turn? This will remove
+                      specific conditions from all characters and dwindle the
+                      element states.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <SheetClose asChild>
+                      <AlertDialogAction onClick={() => handleNextTurn()}>
                         Confirm
                       </AlertDialogAction>
                     </SheetClose>
