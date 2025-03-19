@@ -25,12 +25,20 @@ import {
   SheetClose,
   SheetContent,
   SheetDescription,
-  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Flame, Droplet, Wind, Moon, Sun, Menu } from "lucide-react";
+
+const elements = [
+  { key: "fire" as const, icon: Flame },
+  { key: "water" as const, icon: Droplet },
+  { key: "air" as const, icon: Wind },
+  { key: "moon" as const, icon: Moon },
+  { key: "sun" as const, icon: Sun },
+] as const;
 
 const conditions = [
   {
@@ -277,12 +285,58 @@ function App() {
     );
   };
 
+  // Update the elementStates initialization to use localStorage
+  const [elementStates, setElementStates] = useState(() => {
+    const saved = localStorage.getItem("elementStates");
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    return {
+      fire: 0,
+      water: 0,
+      air: 0,
+      moon: 0,
+      sun: 0,
+    };
+  });
+
+  // Add useEffect to save elementStates changes
+  useEffect(() => {
+    localStorage.setItem("elementStates", JSON.stringify(elementStates));
+  }, [elementStates]);
+
+  const handleElementClick = (element: keyof typeof elementStates) => {
+    setElementStates((prev: typeof elementStates) => ({
+      ...prev,
+      [element]: (prev[element] + 1) % 3, // Cycle through 0, 1, 2
+    }));
+  };
+
+  const getElementStyle = (element: keyof typeof elementStates) => {
+    const colorMap = {
+      fire: "bg-red-500 hover:bg-red-600",
+      water: "bg-blue-500 hover:bg-blue-600",
+      air: "bg-slate-500 hover:bg-slate-600",
+      moon: "bg-purple-500 hover:bg-purple-600",
+      sun: "bg-yellow-500 hover:bg-yellow-600",
+    };
+
+    switch (elementStates[element]) {
+      case 1:
+        return colorMap[element as keyof typeof colorMap];
+      case 2:
+        return `${colorMap[element as keyof typeof colorMap]} opacity-50`;
+      default:
+        return "";
+    }
+  };
+
   return (
     <div className="bg-gray-100 min-h-screen w-screen p-4 md:p-8">
-      <div className="max-w-5xl mx-auto mb-4">
+      <div className="max-w-5xl mx-auto mb-4 flex flex-row gap-2 justify-between items-center">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline">Mass Commands</Button>
+            <Menu />
           </SheetTrigger>
           <SheetContent side="left">
             <SheetHeader>
@@ -324,6 +378,20 @@ function App() {
             </div>
           </SheetContent>
         </Sheet>
+        <div className="flex flex-row gap-2">
+          {elements.map(({ key, icon: Icon }) => (
+            <Button
+              key={key}
+              className={`rounded-full w-10 h-10 ${getElementStyle(
+                key
+              )} cursor-pointer`}
+              variant="outline"
+              onClick={() => handleElementClick(key)}
+            >
+              <Icon />
+            </Button>
+          ))}
+        </div>
       </div>
       <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
         {characters.map((character) => (
@@ -355,18 +423,18 @@ function App() {
                   <span className="text-white text-2xl font-medium text-center">
                     {character.health}
                   </span>
-                  <div className="flex w-full">
+                  <div className="flex w-full md:mt-2">
                     <Button
                       variant="ghost"
                       onClick={() => handleHealthChange(character.name, -1)}
-                      className="text-white hover:bg-white/20 w-1/2 rounded-bl-lg rounded-br-none rounded-t-none flex items-center justify-center transition-colors"
+                      className="text-white hover:bg-white/20 w-1/2 rounded-bl-lg rounded-br-none rounded-t-none flex items-center justify-center transition-colors cursor-pointer"
                     >
                       -
                     </Button>
                     <Button
                       variant="ghost"
                       onClick={() => handleHealthChange(character.name, 1)}
-                      className="text-white hover:bg-white/20 w-1/2 bg rounded-br-lg rounded-bl-none rounded-t-none flex items-center justify-center transition-colors"
+                      className="text-white hover:bg-white/20 w-1/2 bg rounded-br-lg rounded-bl-none rounded-t-none flex items-center justify-center transition-colors cursor-pointer"
                     >
                       +
                     </Button>
@@ -381,18 +449,18 @@ function App() {
                     </span>
                   </div>
                   {handleBankXPWithConfirmation(character.name)}
-                  <div className="flex w-full">
+                  <div className="flex w-full md:mt-2">
                     <Button
                       variant="ghost"
                       onClick={() => handleXPChange(character.name, -1)}
-                      className="text-white hover:bg-white/20 w-1/2 rounded-bl-lg rounded-br-none rounded-t-none flex items-center justify-center transition-colors"
+                      className="text-white hover:bg-white/20 w-1/2 rounded-bl-lg rounded-br-none rounded-t-none flex items-center justify-center transition-colors cursor-pointer"
                     >
                       -
                     </Button>
                     <Button
                       variant="ghost"
                       onClick={() => handleXPChange(character.name, 1)}
-                      className="text-white hover:bg-white/20 w-1/2 bg rounded-br-lg rounded-bl-none rounded-t-none flex items-center justify-center transition-colors"
+                      className="text-white hover:bg-white/20 w-1/2 bg rounded-br-lg rounded-bl-none rounded-t-none flex items-center justify-center transition-colors cursor-pointer"
                     >
                       +
                     </Button>
@@ -429,7 +497,7 @@ function App() {
                 </div>
                 <Drawer>
                   <DrawerTrigger asChild>
-                    <button className="w-full bg-white/20 text-white rounded-lg px-3 py-2 text-left hover:bg-white/30 transition-colors">
+                    <button className="w-full bg-white/20 text-white rounded-lg px-3 py-2 text-left hover:bg-white/30 transition-colors cursor-pointer">
                       Add condition...
                     </button>
                   </DrawerTrigger>
@@ -451,7 +519,7 @@ function App() {
                                   condition.name
                                 );
                               }}
-                              className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg"
+                              className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg cursor-pointer"
                             >
                               {condition.name}
                             </button>
