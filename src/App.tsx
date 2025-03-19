@@ -30,7 +30,15 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Flame, Droplet, Wind, Moon, Sun, Menu } from "lucide-react";
+import {
+  Flame,
+  Droplet,
+  Wind,
+  Moon,
+  Sun,
+  Menu,
+  ChevronDown,
+} from "lucide-react";
 
 const elements = [
   { key: "fire" as const, icon: Flame },
@@ -220,7 +228,6 @@ function App() {
   };
 
   const handleNextTurn = () => {
-    // Simulate clicks on active elements
     Object.entries(elementStates).forEach(([element, value]) => {
       if ((value as number) > 0) {
         handleElementClick(element as keyof typeof elementStates);
@@ -368,6 +375,21 @@ function App() {
     }
   };
 
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+
+  const toggleMenu = (title: string) => {
+    setOpenMenus((prev) => {
+      const newState = { ...prev };
+      Object.keys(newState).forEach((key) => {
+        newState[key] = key === title ? !prev[title] : false;
+      });
+      if (!(title in newState)) {
+        newState[title] = true;
+      }
+      return newState;
+    });
+  };
+
   return (
     <div className="bg-gray-100 min-h-screen w-screen p-4 md:p-8">
       <div className="max-w-5xl mx-auto mb-4 flex flex-row gap-2 justify-between items-center">
@@ -377,64 +399,97 @@ function App() {
           </SheetTrigger>
           <SheetContent side="left">
             <SheetHeader>
-              <SheetTitle>Mass Commands</SheetTitle>
+              <SheetTitle>Settings & Commands</SheetTitle>
               <SheetDescription>
-                Make commands to all characters at once.
+                You could find all commands and settings here.
               </SheetDescription>
             </SheetHeader>
             <div className="p-4 flex flex-col gap-2">
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button className="w-full">Bank All XP</Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Bank All Experience Points
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to bank current XP for all
-                      characters? This will add their current XP to overall XP
-                      and reset current XP to 0.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <SheetClose asChild>
-                      <AlertDialogAction
-                        onClick={() =>
-                          characters.forEach((char) => handleBankXP(char.name))
-                        }
-                      >
-                        Confirm
-                      </AlertDialogAction>
-                    </SheetClose>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button className="w-full">Next Turn</Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Next Turn</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you ready to end the current turn? This will remove
-                      specific conditions from all characters and dwindle the
-                      element states.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <SheetClose asChild>
-                      <AlertDialogAction onClick={() => handleNextTurn()}>
-                        Confirm
-                      </AlertDialogAction>
-                    </SheetClose>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => toggleMenu("Commands")}
+                  className="flex w-full items-center justify-between p-2 hover:bg-gray-100 rounded-md"
+                >
+                  <span>Commands</span>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform ${
+                      openMenus["Commands"] ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                <div
+                  className={`
+                    grid transition-all duration-200 ease-in-out
+                    ${
+                      openMenus["Commands"]
+                        ? "grid-rows-[1fr] opacity-100"
+                        : "grid-rows-[0fr] opacity-0"
+                    }
+                  `}
+                >
+                  <div className="overflow-hidden pl-3 flex flex-col gap-2">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button className="cursor-pointer hover:text-gray-700 transition-colors">
+                          Bank All XP
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Bank All Experience Points
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to bank current XP for all
+                            characters? This will add their current XP to
+                            overall XP and reset current XP to 0.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <SheetClose asChild>
+                            <AlertDialogAction
+                              onClick={() =>
+                                characters.forEach((char) =>
+                                  handleBankXP(char.name)
+                                )
+                              }
+                            >
+                              Confirm
+                            </AlertDialogAction>
+                          </SheetClose>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button className="cursor-pointer hover:text-gray-700 transition-colors">
+                          Next Turn
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Next Turn</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you ready to end the current turn? This will
+                            remove specific conditions from all characters and
+                            dwindle the element states.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <SheetClose asChild>
+                            <AlertDialogAction onClick={() => handleNextTurn()}>
+                              Confirm
+                            </AlertDialogAction>
+                          </SheetClose>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              </div>
             </div>
           </SheetContent>
         </Sheet>
