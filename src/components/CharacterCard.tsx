@@ -3,16 +3,8 @@ import { CharacterHealth } from "./CharacterHealth";
 import { CharacterXP } from "./CharacterXP";
 import { CharacterGold } from "./CharacterGold";
 import { CharacterConditions } from "./CharacterConditions";
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { renderAbilityDeck } from "@/lib/utils/renderAbilityDeck";
-import { useState, useRef } from "react";
-import { X } from "lucide-react";
+import { useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 type CharacterCardProps = {
   character: Character;
@@ -37,8 +29,8 @@ export const CharacterCard = ({
   onConditionAdd,
   onConditionRemove,
 }: CharacterCardProps) => {
-  const [open, setOpen] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   const handleCardClick = (e: React.MouseEvent) => {
     const target = e.target as Element;
@@ -49,7 +41,7 @@ export const CharacterCard = ({
       target.closest("[data-interactive]") !== null;
 
     if (!isInteractive && cardRef.current && cardRef.current.contains(target)) {
-      setOpen(true);
+      navigate(`/character/${character.name}`);
     }
   };
 
@@ -113,25 +105,6 @@ export const CharacterCard = ({
           </div>
         </div>
       </div>
-
-      <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
-          <AlertDialogHeader>
-            <div className="flex justify-between items-center">
-              <AlertDialogTitle>
-                {character.name}'s Ability Deck
-              </AlertDialogTitle>
-              <AlertDialogCancel className="h-6 w-6 rounded-sm opacity-70 p-0 hover:opacity-100">
-                <X className="h-4 w-4" />
-              </AlertDialogCancel>
-            </div>
-          </AlertDialogHeader>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {renderAbilityDeck(character.abbreviation, character.abilityDeck)}
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 };
